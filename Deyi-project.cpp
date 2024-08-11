@@ -84,7 +84,7 @@ int main(void)
 		float inputWeight = 0.0;
 		char countryName[BUFFER_LENGTH] = {};
 		printf("1. Enter country name and display all the parcels details.\n");
-		printf("2. Enter country and weight pair.\n");
+		printf("2. Enter country and weight pair. Show parcels with higher and lower weight.\n");
 		printf("3. Display the total parcel load and valuation for the country.\n");
 		printf("4. Enter the country name and display cheapest and most expensive parcel's details.\n");
 		printf("5. Enter the country name and display lightest and heaviest parcel for the country.\n");
@@ -133,7 +133,7 @@ int main(void)
 			fgets(countryName, BUFFER_LENGTH, stdin);
 			deleteRC(countryName);
 			printf("\n");
-			printf("Total cheapest value is %f.\n", findCheapest(countries->hashTable[hashfunction(countryName)], countries->hashTable[hashfunction(countryName)]->value));
+			printf("The most cheapest value is %f.\n", findCheapest(countries->hashTable[hashfunction(countryName)], countries->hashTable[hashfunction(countryName)]->value));
 			printf("The most expensive value is %f.\n", findExpensive(countries->hashTable[hashfunction(countryName)], countries->hashTable[hashfunction(countryName)]->value));
 			break;
 		case 5:
@@ -208,47 +208,69 @@ void findLightest(Parcel* root)
 }
 
 // display cheapest parcel’s details
-// bug
 float findCheapest(Parcel* root, float cheapest)
 {
 	if (root == NULL)
 	{
 		return cheapest;
 	}
-	if (root->value >= cheapest)
-	{
-		cheapest = findCheapest(root->left, cheapest);
-		cheapest = findCheapest(root->right, cheapest);
-	}
-	else
+
+	if (root->value < cheapest)
 	{
 		cheapest = root->value;
-		cheapest = findCheapest(root->left, cheapest);
-		cheapest = findCheapest(root->right, cheapest);
 	}
-	return  cheapest;
+
+	float leftCheapest = findCheapest(root->left, cheapest);
+	float rightCheapest = findCheapest(root->right, cheapest);
+
+	if (cheapest <= leftCheapest &&
+		cheapest <= rightCheapest)
+	{
+		return  cheapest;
+	}
+	else if (leftCheapest <= rightCheapest &&
+			 leftCheapest <= cheapest)
+	{
+		return  leftCheapest;
+	}
+	else if (rightCheapest <= leftCheapest &&
+		rightCheapest <= cheapest)
+	{
+		return  rightCheapest;
+	}
 }
 
 // display most expensive parcel’s details
-// bug
 float findExpensive(Parcel* root, float expensive)
 {
 	if (root == NULL)
 	{
 		return expensive;
 	}
-	if (root->value <= expensive)
-	{
-		expensive = findCheapest(root->left, expensive);
-		expensive = findCheapest(root->right, expensive);
-	}
-	else
+
+	if (root->value > expensive)
 	{
 		expensive = root->value;
-		expensive = findCheapest(root->left, expensive);
-		expensive = findCheapest(root->right, expensive);
 	}
-	return  expensive;
+
+	float leftExpensive = findExpensive(root->left, expensive);
+	float rightExpensive = findExpensive(root->right, expensive);
+
+	if (expensive >= leftExpensive &&
+		expensive >= rightExpensive)
+	{
+		return  expensive;
+	}
+	else if (leftExpensive >= rightExpensive &&
+		leftExpensive >= expensive)
+	{
+		return  leftExpensive;
+	}
+	else if (rightExpensive >= leftExpensive &&
+		rightExpensive >= expensive)
+	{
+		return  rightExpensive;
+	}
 }
 
 // the cumulative total valuation of all the parcels.
@@ -305,7 +327,6 @@ void showLower(Parcel* root, int newWeight)
 }
 
 // display all the parcel for given country whose weight is higher than weight entered.
-// bug 
 void showHigher(Parcel* root, int newWeight)
 {
 	if (root == NULL)
@@ -321,7 +342,7 @@ void showHigher(Parcel* root, int newWeight)
 	{
 		showNode(root);
 		showWholeTree(root->right);
-		showLower(root->left, newWeight);
+		showHigher(root->left, newWeight);
 	}
 	else
 	{
@@ -475,23 +496,4 @@ int hashfunction(char* str)
 
 /* ================================================================ */
 /* FUNCTION : freeTree( root)										*/
-/* PURPOSE  : free the memory that has been allocated				*/
-/* INPUTS   : root - a pointer to the root of the tree			    */
-/* RETURNS  : none									                */
-/* ================================================================ */
-void freeTree(Parcel* root)
-{
-	if (root == NULL)
-	{
-		return;
-	}
-
-	Parcel* left = root->left;
-	Parcel* right = root->right;
-
-	free(root->destination);
-	free(root);
-
-	freeTree(left);
-	freeTree(right);
-}
+/* PURPOSE  : free the memory that 
