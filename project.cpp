@@ -157,24 +157,11 @@ int main(void)
 			printf("");
 			break;
 		default:
+			printf("Wrong number, choose again please.\n");
 			break;
 		}
 		printf("\n");
 	}
-
-	//test:
-	//showWholeTree(countries->hashTable[0]);
-	// 
-	//showLower(countries->hashTable[0], 5132);
-
-	//int load = CaculatetotalLoad(countries->hashTable[0]);
-	//float totalvalue = CaculatetotalValutation(countries->hashTable[0]);
-	//printf("%d, %f", load, totalvalue);
-
-	//printf("%f\n", findCheapest(countries->hashTable[0], 665.14));
-
-	//findLightest(countries->hashTable[0]);
-
 
 	//free:
 	for (int i = 0; i < BUCKETS_NUMBER; i++)
@@ -310,15 +297,15 @@ float findExpensive(Parcel* root, float expensive)
 /* ================================================================ */
 float  CaculatetotalValutation(Parcel* root)
 {
-	float valuation = 0.0;
 	if (root == NULL)
 	{
 		return 0;
 	}
-	valuation += root->value;
-	valuation += CaculatetotalLoad(root->left);
-	valuation += CaculatetotalLoad(root->right);
-	return valuation;
+	float rootValuation = root->value;
+	float leftValuation = CaculatetotalValutation(root->left);
+	float rightValuation = CaculatetotalValutation(root->right);
+
+	return rootValuation + leftValuation + rightValuation;
 }
 
 /* ================================================================ */
@@ -330,16 +317,14 @@ float  CaculatetotalValutation(Parcel* root)
 /* ================================================================ */
 int CaculatetotalLoad(Parcel* root)
 {
-	int totalLoad = 0;
-	
 	if (root == NULL)
 	{
 		return 0;
 	}
-	totalLoad += root->weight;
-	totalLoad += CaculatetotalLoad(root->left);
-	totalLoad += CaculatetotalLoad(root->right);
-	return totalLoad;
+	int rootLoad = root->weight;
+	int totalLeft = CaculatetotalLoad(root->left);
+	int totalRight = CaculatetotalLoad(root->right);
+	return rootLoad + totalLeft + totalRight;
 }
 
 /* ================================================================ */
@@ -407,4 +392,11 @@ void showHigher(Parcel* root, int newWeight)
 /* ================================================================ */
 /* FUNCTION : showNode( root)									    */
 /* PURPOSE  : This function is to display the node					*/
-/* INPUTS   : root - the root of the tree                      
+/* INPUTS   : root - the root of the tree                           */
+/* RETURNS  : None									                */
+/* ================================================================ */
+void showNode(Parcel * root)
+{
+	printf("Destination: %s\n", root->destination);
+	printf("Weight: %d\n", root->weight);
+	printf("Value: %f\n\n", root->v
