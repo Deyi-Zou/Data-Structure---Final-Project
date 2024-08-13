@@ -41,8 +41,8 @@ void showHigher(Parcel* root, int newWeight);
 void showLower(Parcel* root, int newWeight);
 int CaculatetotalLoad(Parcel* root);
 float  CaculatetotalValutation(Parcel* root);
-float findCheapest(Parcel* root, float cheapest); 
-float findExpensive(Parcel* root, float expensive);
+Parcel* findCheapest(Parcel* root);
+Parcel* findExpensive(Parcel* root );
 void findLightest(Parcel* root);
 void freeTree(Parcel* root);
 
@@ -57,7 +57,7 @@ int main(void)
 	int choice = 0;
 
 	// file IO
-	if (fopen_s(&ptr, "./countries.txt", "r") != 0)
+	if (fopen_s(&ptr, "./couriers.txt", "r") != 0)
 	{
 		printf("Error of file Openning.\n");
 		exit(EXIT_FAILURE);
@@ -134,16 +134,18 @@ int main(void)
 			fgets(countryName, BUFFER_LENGTH, stdin);
 			deleteRC(countryName);
 			printf("\n");
-			printf("Total load is %d.\n", CaculatetotalLoad(countries->hashTable[hashfunction(countryName)]));
-			printf("Total valuation is %f.\n", CaculatetotalValutation(countries->hashTable[hashfunction(countryName)]));
+			printf("Total load is %dg.\n", CaculatetotalLoad(countries->hashTable[hashfunction(countryName)]));
+			printf("Total valuation is $%f.\n", CaculatetotalValutation(countries->hashTable[hashfunction(countryName)]));
 			break;
 		case 4:
 			printf("Please enter country name: ");
 			fgets(countryName, BUFFER_LENGTH, stdin);
 			deleteRC(countryName);
 			printf("\n");
-			printf("The most cheapest value is %f.\n", findCheapest(countries->hashTable[hashfunction(countryName)], countries->hashTable[hashfunction(countryName)]->value));
-			printf("The most expensive value is %f.\n", findExpensive(countries->hashTable[hashfunction(countryName)], countries->hashTable[hashfunction(countryName)]->value));
+			printf("The most cheapest value is :\n");
+			showNode(findCheapest(countries->hashTable[hashfunction(countryName)]));
+			printf("The most expensive value is :\n"); 
+			showNode(findExpensive(countries->hashTable[hashfunction(countryName)]));
 			break;
 		case 5:
 			printf("Please enter country name: ");
@@ -211,81 +213,70 @@ void findLightest(Parcel* root)
 }
 
 /* ================================================================ */
-/* FUNCTION : findCheapest( root, cheapest)                         */
-/* PURPOSE  : This function is to display cheapest parcel’s details */
+/* FUNCTION : findCheapest( root)									*/
+/* PURPOSE  : This function is to find cheapest parcel’s details	*/
 /* INPUTS   : root - the root of the tree                           */
-/*			  cheapest - the cheapest value so far					*/	
 /* RETURNS  : float - the cheapest value so far                     */
 /* ================================================================ */
-float findCheapest(Parcel* root, float cheapest)
+Parcel* findCheapest(Parcel* root )
 {
 	if (root == NULL)
 	{
-		return cheapest;
+		return NULL;
 	}
 
-	if (root->value < cheapest)
+	Parcel* leftCheapest = findCheapest(root->left);
+	Parcel* rightCheapest = findCheapest(root->right);
+
+	Parcel* cheapest = root;
+
+	if (leftCheapest != NULL &&
+		leftCheapest->value <= cheapest->value)
 	{
-		cheapest = root->value;
+		cheapest = leftCheapest;
+	}
+	
+	if (rightCheapest != NULL &&
+		rightCheapest->value <= cheapest->value )
+	{
+		cheapest =  rightCheapest;
 	}
 
-	float leftCheapest = findCheapest(root->left, cheapest);
-	float rightCheapest = findCheapest(root->right, cheapest);
-
-	if (cheapest <= leftCheapest &&
-		cheapest <= rightCheapest)
-	{
-		return  cheapest;
-	}
-	else if (leftCheapest <= rightCheapest &&
-			 leftCheapest <= cheapest)
-	{
-		return  leftCheapest;
-	}
-	else if (rightCheapest <= leftCheapest &&
-		rightCheapest <= cheapest)
-	{
-		return  rightCheapest;
-	}
+	return cheapest;
 }
 
 /* ================================================================ */
-/* FUNCTION : findExpensive( root, expensive)                        */
-/* PURPOSE  : This function is to display most expensive parcel     */
+/* FUNCTION : findExpensive( root)									*/
+/* PURPOSE  : This function is to find most expensive parcel		*/
 /* INPUTS   : root - the root of the tree                           */
-/*			  expensive - the most expensive value so far			*/
 /* RETURNS  : float - the expensive value so far                    */
 /* ================================================================ */
-float findExpensive(Parcel* root, float expensive)
+Parcel* findExpensive(Parcel* root)
 {
 	if (root == NULL)
 	{
-		return expensive;
+		return NULL;
 	}
 
-	if (root->value > expensive)
+	Parcel* leftExpensive = findExpensive(root->left);
+	Parcel* rightExpensive = findExpensive(root->right);
+
+	Parcel* expensive = root;
+
+	if (leftExpensive != NULL &&
+		leftExpensive->value >= expensive->value)
 	{
-		expensive = root->value;
+		expensive = leftExpensive;
 	}
 
-	float leftExpensive = findExpensive(root->left, expensive);
-	float rightExpensive = findExpensive(root->right, expensive);
+	// important: if, rather than else if
+	if (rightExpensive != NULL &&
+		rightExpensive->value >= expensive->value)
+	{
+		expensive = rightExpensive;
+	}
 
-	if (expensive >= leftExpensive &&
-		expensive >= rightExpensive)
-	{
-		return  expensive;
-	}
-	else if (leftExpensive >= rightExpensive &&
-		leftExpensive >= expensive)
-	{
-		return  leftExpensive;
-	}
-	else if (rightExpensive >= leftExpensive &&
-		rightExpensive >= expensive)
-	{
-		return  rightExpensive;
-	}
+	return expensive;
 }
  
 /* ================================================================ */
@@ -397,6 +388,202 @@ void showHigher(Parcel* root, int newWeight)
 /* ================================================================ */
 void showNode(Parcel * root)
 {
-	printf("Destination: %s\n", root->destination);
-	printf("Weight: %d\n", root->weight);
-	printf("Value: %f\n\n", root->v
+	printf("Destination: %s, ", root->destination);
+	printf("Weight: %dg, ", root->weight);
+	printf("Value: $%f\n", root->value);
+}
+
+/* ================================================================ */
+/* FUNCTION : showWholeTree( root)								    */
+/* PURPOSE  : This function is to display the tree, pre-order		*/
+/* INPUTS   : root - the root of the tree                           */
+/* RETURNS  : None									                */
+/* ================================================================ */
+void showWholeTree(Parcel* root)
+{
+	if (root == NULL)
+	{
+		return;
+	}
+	showNode(root);
+
+	showWholeTree(root->left);
+	showWholeTree(root->right);
+}
+
+/* ================================================================ */
+/* FUNCTION : insertTree( root, newNode)						    */
+/* PURPOSE  : This function is to insert new node to the tree		*/
+/* INPUTS   : root - the root of the tree                           */
+/*			  newNode - the new node								*/
+/* RETURNS  : Parcel* the pointer to the root			            */
+/* ================================================================ */
+Parcel* insertTree(Parcel* root, Parcel* newNode)
+{
+	// insert root
+	if (root == NULL)
+	{
+		root = newNode;
+		return root;
+	}
+
+	// insert left subtree
+	if (root->weight > newNode->weight )
+	{
+		// important: assiged to the child
+		root->left = insertTree(root->left, newNode);
+		// important: don't return here, if you want the right tree to grow correctly
+	}
+	// insert right subtree
+	if (root->weight < newNode->weight)
+	{
+		root->right = insertTree(root->right, newNode);		
+	}
+	return root;
+}
+
+/* ================================================================ */
+/* FUNCTION : insertHashTable( countries, destination, weight,value)*/
+/* PURPOSE  : This function is to creat new node and insert it to	*/
+/*			  the tree in hastable									*/
+/* INPUTS   : countries - the hash table							*/
+/*			  destination - the country								*/
+/*			  weight - the weight of the parcel						*/
+/*			  value - the value of the parcel						*/
+/* RETURNS  : None										            */
+/* ================================================================ */
+void insertHashTable(HashTable* countries, char* destination, int weight, float value)
+{
+	int hashNumber = 0;
+	Parcel* newNode = creatNode(destination, weight, value);
+	hashNumber = hashfunction(destination);
+
+	// important to insert the root !!!
+	if (countries->hashTable[hashNumber] == NULL)
+	{
+		countries->hashTable[hashNumber] = newNode;
+		return;
+	}
+
+	Parcel* root = countries->hashTable[hashNumber];
+	
+	insertTree(root, newNode);
+
+}
+
+/* ================================================================ */
+/* FUNCTION : creatNode( destination, weight,value)				    */
+/* PURPOSE  : This function is to creat new node					*/
+/* INPUTS   : destination - the country							    */
+/*			  weight - the weight of the parcel						*/
+/*			  value - the value of the parcel						*/
+/* RETURNS  : Parcel* the pointer to the new node 		            */
+/* ================================================================ */
+Parcel* creatNode(char* destination, int weight, float value)
+{
+	Parcel* newNode = (Parcel*)malloc(sizeof(Parcel));
+	if (newNode == NULL)
+	{
+		printf("Error of memory.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	newNode->destination = (char*)malloc(strlen(destination) + 1);
+	if (newNode->destination == NULL)
+	{
+		printf("Error of memory.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	strcpy_s(newNode->destination, strlen(destination) + 1, destination);
+	newNode->value = value;
+	newNode->weight = weight;
+	newNode->left = NULL;
+	newNode->right = NULL;
+
+	return newNode;
+}
+
+/* ================================================================ */
+/* FUNCTION : initializeHashTable( void)						    */
+/* PURPOSE  : This function is to initialize the HashTable			*/
+/* INPUTS   : None												    */
+/* RETURNS  : HashTable* the pointer to the HashTable 	            */
+/* ================================================================ */
+HashTable* initializeHashTable(void)
+{
+	HashTable* Hashtable = (HashTable * ) malloc(sizeof(HashTable));
+
+	if (Hashtable == NULL)
+	{
+		printf("Error of memory.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (int i = 0; i < BUCKETS_NUMBER; i++)
+	{
+		Hashtable->hashTable[i] = NULL;
+	}
+	return Hashtable;
+}
+
+/* ================================================================ */
+/* FUNCTION : deleteRC( record)                                     */
+/* PURPOSE  : This function is to delete the RC in the end of string*/
+/* INPUTS   : record - the string                                   */
+/* RETURNS  : None                                                  */
+/* ================================================================ */
+void deleteRC(char* record)
+{
+	char* whereRC = NULL;
+	whereRC = strchr(record, '\n');
+	if (whereRC)
+	{
+		*whereRC = '\0';
+	}
+}
+
+
+/* ================================================================ */
+/* FUNCTION : hashfunction( str)                                    */
+/* PURPOSE  : use algorim to get a int between 0 and 127 from input */
+/* INPUTS   : str - string to hash                                  */
+/* RETURNS  : a int to use as index in a hashtable                  */
+/* Author   : Dan Bernstein                                         */
+/*            I got it from lecture                                 */
+/* ================================================================ */
+int hashfunction(char* str)
+{
+	unsigned long hash = 5381;
+	int c;
+	int result = 0;
+	while (c = *str++)
+	{
+		hash = ((hash << 5) + hash) + c; // hash * 33 + c
+	}
+	result = (int)(hash % BUCKETS_NUMBER);
+	return result;
+}
+
+/* ================================================================ */
+/* FUNCTION : freeTree( root)										*/
+/* PURPOSE  : free the memory that has been allocated				*/
+/* INPUTS   : root - a pointer to the root of the tree			    */
+/* RETURNS  : none									                */
+/* ================================================================ */
+void freeTree(Parcel* root)
+{
+	if (root == NULL)
+	{
+		return;
+	}
+
+	Parcel* left = root->left;
+	Parcel* right = root->right;
+
+	free(root->destination);
+	free(root);
+
+	freeTree(left);
+	freeTree(right);
+}
